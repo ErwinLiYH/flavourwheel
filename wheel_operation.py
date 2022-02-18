@@ -77,8 +77,9 @@ def _change_color(json_dic, base_hex_color, grediant):
     if "children" in json_dic:
         length = len(json_dic["children"])
         base_rgb_color = hex_to_rgb(base_hex_color)
+        base_grediant = grediant//length
         for i in range(length):
-            _color = [base_rgb_color[0], base_rgb_color[1]+grediant*(i+1), base_rgb_color[2]+grediant*(i+1)]
+            _color = [base_rgb_color[0], base_rgb_color[1]+base_grediant*(i+1), base_rgb_color[2]+base_grediant*(i+1)]
             for j in range(3):
                 if _color[j]>255:
                     _color[j]=255
