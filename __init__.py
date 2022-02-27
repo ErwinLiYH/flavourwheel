@@ -127,12 +127,12 @@ def to_GloVe_vector(token_list, model):
     vectors = np.stack(vectors)
     return vectors
         
-def __gen_concept_matrix(token_list, num):
+def __gen_concept_matrix(token_list, num, cache_path = "./MCG"):
     classes = []
     info = []
     vectors = []
     for ind,i in enumerate(token_list):
-        temp_dict = filters.__get_concept_prob(i, num)
+        temp_dict = filters.get_concept_prob(i, num, cache_path = cache_path)
         classes += temp_dict.keys()
         classes = list(set(classes))
         info.append(temp_dict)
@@ -152,8 +152,8 @@ def __gen_concept_matrix(token_list, num):
     vectors = np.stack(vectors)
     return classes, vectors
 
-def to_mix_vector(token_list, num_of_concept, GloVe_vectors):
-    c, concept_matrix = __gen_concept_matrix(token_list, num_of_concept)
+def to_mix_vector(token_list, num_of_concept, GloVe_vectors, cache_path = "./MCG"):
+    c, concept_matrix = __gen_concept_matrix(token_list, num_of_concept, cache_path = cache_path)
     vectors = np.hstack((GloVe_vectors, concept_matrix))
     print("\ngross concepts: %d"%len(c))
     return vectors

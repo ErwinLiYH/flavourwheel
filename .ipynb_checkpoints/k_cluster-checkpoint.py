@@ -19,7 +19,7 @@ def gen_classes(Node_list, dist_tol)->dict:
     for i in Node_list:
         if i.children_list == []:
             if i.parent == None:
-                res[i.id] = [i.id]
+                pass
             else:
                 if i.parent.id in res:
                     if i.parent.dist<dist_tol:

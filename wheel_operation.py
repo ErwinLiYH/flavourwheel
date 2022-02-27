@@ -51,7 +51,10 @@ def gen(classdic1, classdic2, map=None, path_name=None)->dict:
     return result
 
 def create_web(path_name, json_dic):
-    os.mkdir(path_name)
+    try:
+        os.makedirs(path_name)
+    except:
+        pass
     rf = resource_filename(__name__, "template")
     shutil.copy(os.path.join(rf,"echarts.js"), os.path.join(path_name, "echarts.js"))
     shutil.copy(os.path.join(rf,"test.html"), os.path.join(path_name, "test.html"))
