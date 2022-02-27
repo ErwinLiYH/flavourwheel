@@ -92,6 +92,18 @@ def wordnet_adj2noun(doc_token_list, disable_log = False):
         doc_log_list.append(log_list)
     return doc_log_list
 
+def MCG_filter(doc_token_list, num = 10, cache_path = "./MCG", disable_log = False):
+    # try:
+    #     os.mkdir(cache_path)
+    # except:
+    #     pass
+    doc_log_list = []
+    for i in range(len(doc_token_list)):
+        log_list = []
+        doc_token_list[i] = [j for j in doc_token_list[i] if filters.MCG_boolean(j, num=num, cache_path=cache_path, log_list=log_list, disable_log=disable_log)]
+        doc_log_list.append(log_list)
+    return doc_log_list
+
 def frequency_filter(count, threshold):
     log_list = []
     remain = []
@@ -114,28 +126,20 @@ def to_GloVe_vector(token_list, model):
         print("Error happend in %d"%i)
     vectors = np.stack(vectors)
     return vectors
-
-def __get_concept_prob(word, num) -> dict:
-    link = requests.get("https://concept.research.microsoft.com/api/Concept/ScoreByProb?instance=%s&topK=%d"%(word, num),verify=False)
-    if link.status_code == 200:
-        res = json.loads(link.text)
-        return res
-    else:
-        raise Exception("code: %d"%link.status_code)
         
 def __gen_concept_matrix(token_list, num):
     classes = []
     info = []
     vectors = []
     for ind,i in enumerate(token_list):
-        temp_dict = __get_concept_prob(i, num)
+        temp_dict = filters.__get_concept_prob(i, num)
         classes += temp_dict.keys()
         classes = list(set(classes))
         info.append(temp_dict)
         print("\r%d/%d"%(ind,len(token_list)),end="")
 
     for i in classes:
-        boolean_list = [filters.wordnet_boolean(i, disable_log=True) for i in  i.split(" ")]
+        boolean_list = [filters.wordnet_boolean(i, disable_log=True) for i in i.split(" ")]
         if (True not in boolean_list):
             classes.remove(i)
 

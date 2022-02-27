@@ -1,4 +1,8 @@
 from nltk.corpus import wordnet as wn
+from . import prj_control
+import json
+import requests
+import os
 
 black_list1 = ["dessert","coffee", "latte", "americano", "java", "demitasse", "cappuccino","espresso", "milk"] # coffee related words
 black_list2 = ["dinner","lunch","breakfast","water", "food", "delicacy"] # too comprehensive words
@@ -13,6 +17,37 @@ defult_black_list = black_list1+black_list2+black_list3
 def wordnet_boolean(token, log_list=None, disable_log=False):
     lexname_list = [j.lexname() for j in wn.synsets(token,pos=wn.NOUN)]
     x = ("noun.food" in lexname_list or "noun.plant" in lexname_list)
+    if x == True:
+        return x
+    else:
+        if disable_log==False:
+            log_list.append(token)
+        return x
+
+def get_concept_prob(word, num, cache_path = "./MCG") -> dict:
+    cache_list = []
+    try:
+        cache_list = os.listdir(cache_path)
+    except:
+        os.mkdir(cache_path)
+    if "%s_%d"%(word,num) in cache_list:
+        res = prj_control.load_result(os.path.join(cache_path, "%s_%d"%(word,num)))
+        return res
+    else:
+        link = requests.get("https://concept.research.microsoft.com/api/Concept/ScoreByProb?instance=%s&topK=%d"%(word, num), verify=False)
+        if link.status_code == 200:
+            res = json.loads(link.text)
+            prj_control.store_result(os.path.join(cache_path,"%s_%d"%(word,num)),res)
+            return res
+        else:
+            raise Exception("code: %d"%link.status_code)
+
+def MCG_boolean(token, num, cache_path = "./MCG", log_list=None, disable_log=False):
+    prob_dic = get_concept_prob(token, num, cache_path)
+    boolean_list = []
+    for k,v in prob_dic.items():
+        boolean_list.append(True in [wordnet_boolean(k, disable_log=True) for k in k.split(" ")])
+    x = (True in boolean_list)
     if x == True:
         return x
     else:
