@@ -136,7 +136,7 @@ def __gen_concept_matrix(token_list, num, cache_path = "./MCG"):
         classes += temp_dict.keys()
         classes = list(set(classes))
         info.append(temp_dict)
-        print("\r%d/%d"%(ind,len(token_list)),end="")
+        print("\r%d/%d"%(ind+1,len(token_list)),end="")
 
     for i in classes:
         boolean_list = [filters.wordnet_boolean(i, disable_log=True) for i in i.split(" ")]
