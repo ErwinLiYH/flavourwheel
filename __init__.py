@@ -138,10 +138,16 @@ def __gen_concept_matrix(token_list, num, cache_path = "./MCG"):
         info.append(temp_dict)
         print("\r%d/%d"%(ind+1,len(token_list)),end="")
 
+    remove_list = []
     for i in classes:
         boolean_list = [filters.wordnet_boolean(i, disable_log=True) for i in i.split(" ")]
         if (True not in boolean_list):
-            classes.remove(i)
+            # classes.remove(i)
+            remove_list.append(i)
+    for i in remove_list:
+        classes.remove(i)
+
+    classes.sort()
 
     for i in info:
         temp_vect = [0 for i in range(len(classes))]
@@ -152,8 +158,10 @@ def __gen_concept_matrix(token_list, num, cache_path = "./MCG"):
     vectors = np.stack(vectors)
     return classes, vectors
 
-def to_mix_vector(token_list, num_of_concept, GloVe_vectors, cache_path = "./MCG"):
+def to_mix_vector(token_list, num_of_concept, GloVe_vectors, cache_path = "./MCG", verbose=False):
     c, concept_matrix = __gen_concept_matrix(token_list, num_of_concept, cache_path = cache_path)
+    if verbose == True:
+        print(c)
     vectors = np.hstack((GloVe_vectors, concept_matrix))
     print("\ngross concepts: %d"%len(c))
     return vectors
