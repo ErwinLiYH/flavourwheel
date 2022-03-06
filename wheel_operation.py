@@ -168,10 +168,64 @@ def substract_cluster(json_dict, cluster_id, layer):
                 break
     value_check(json_dict)
 
-def move_cluster(json_dict, id, layer, to_parent_id, to_parent_layer):
+def move_cluster(json_dict, id, layer, to_parent_id=None, to_parent_layer=0):
     if layer not in [1,2,3]:
         raise Exception("The layer must be 1 to 3")
     if to_parent_layer not in [0,1,2]:
         raise Exception("The parent to_parent_layer must be 0 to 2")
     substract_cluster(json_dict, id, layer)
     add_cluster(json_dict, id, parent_id=to_parent_id, parent_layer=to_parent_layer)
+
+def compress_cluster(json_dict, id, layer):
+    flag = False
+    if layer not in [1,2]:
+        raise Exception("The layer must be 1 to 2")
+    if layer == 1:
+        for i in json_dict["data"]:
+            if i["name"] == id:
+                for j in i["children"]:
+                    add_cluster(json_dict, j["name"], None, 0)
+                substract_cluster(json_dict, id, 1)
+                break
+    if layer == 2:
+        for i in json_dict["data"]:
+            for j in i["children"]:
+                if j["name"] == id:
+                    for k in j["children"]:
+                        add_cluster(json_dict, k["name"], i["name"], 1)
+                    substract_cluster(json_dict, id, 2)
+                    flag = True
+                    break
+            if flag:
+                break
+
+def replace_name(json_dict, id, layer, to_id):
+    flag = False
+    if layer not in [1,2,3]:
+        raise Exception("The layer must be 1 to 3")
+    if layer == 1:
+        for i in json_dict["data"]:
+            if i["name"] == id:
+                i["name"] = to_id
+                break
+    if layer == 2:
+        for i in json_dict["data"]:
+            for j in i["children"]:
+                if j["name"] == id:
+                    j["name"] = to_id
+                    flag = True
+                    break
+            if flag:
+                break
+    if layer == 3:
+        for i in json_dict["data"]:
+            for j in i["children"]:
+                for k in j["children"]:
+                    if k["name"] == id:
+                        k["name"] = to_id
+                        flag = True
+                        break
+                if flag:
+                    break
+            if flag:
+                break
