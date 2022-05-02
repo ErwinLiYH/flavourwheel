@@ -1,5 +1,5 @@
 var chartDom = document.getElementById('main');
-var myChart = echarts.init(chartDom, null, {renderer: 'svg'});
+var myChart = echarts.init(chartDom, null);
 var option;
 
 var js_data = JSON.parse(text);
@@ -11,7 +11,10 @@ option = {
         feature: {
             saveAsImage: {
             show:true,
-            type: 'svg'
+            type: 'png',
+            backgroundColor:'#ffffff',
+            name:'result',
+            pixelRatio:4
             }
         }
    },
@@ -42,7 +45,7 @@ option = {
         r: '70%',
         label: {
           align: 'right',
-          fontSize: 10
+          fontSize: 12
         }
       },
       {
@@ -52,7 +55,7 @@ option = {
           position: 'outside',
           padding: 3,
           silent: false,
-          fontSize: 10
+          fontSize: 12
         },
         itemStyle: {
           borderWidth: 3

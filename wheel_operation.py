@@ -61,7 +61,7 @@ def create_web(path_name, json_dic):
     
     json_string = json.dumps(json_dic, indent=4, sort_keys=True).replace("\n","\\\n")
 
-    with open(os.path.join(rf,"templatejs.txt"), "r") as tem:
+    with open(os.path.join(rf,"template.js"), "r") as tem:
         tem_string = tem.read()
 
     with open(os.path.join(path_name, "test.js"), "w") as js:
@@ -80,13 +80,14 @@ def _change_color(json_dic, base_hex_color, grediant):
     if "children" in json_dic:
         length = len(json_dic["children"])
         base_rgb_color = hex_to_rgb(base_hex_color)
-        base_grediant = grediant//length
-        for i in range(length):
-            _color = [base_rgb_color[0], base_rgb_color[1]+base_grediant*(i+1), base_rgb_color[2]+base_grediant*(i+1)]
-            for j in range(3):
-                if _color[j]>255:
-                    _color[j]=255
-            _change_color(json_dic["children"][i], rgb_to_hex(tuple(_color)), grediant)
+        if length != 0:
+            base_grediant = grediant//length
+            for i in range(length):
+                _color = [base_rgb_color[0], base_rgb_color[1]+base_grediant*(i+1), base_rgb_color[2]+base_grediant*(i+1)]
+                for j in range(3):
+                    if _color[j]>255:
+                        _color[j]=255
+                _change_color(json_dic["children"][i], rgb_to_hex(tuple(_color)), grediant)
 
 def grediant_color(json_dic, base_hex_color_list, grediant):
     data = json_dic["data"]
@@ -184,7 +185,7 @@ def compress_cluster(json_dict, id, layer):
         for i in json_dict["data"]:
             if i["name"] == id:
                 for j in i["children"]:
-                    add_cluster(json_dict, j["name"], None, 0)
+                    json_dict["data"].append(j)
                 substract_cluster(json_dict, id, 1)
                 break
     if layer == 2:
@@ -229,3 +230,66 @@ def replace_name(json_dict, id, layer, to_id):
                     break
             if flag:
                 break
+
+def find_name(a_cluster_list, name):
+    for i, o in enumerate(a_cluster_list):
+        if o["name"] == name:
+            return i
+
+def change_order(json_dict, order_list, id=None, layer=0):
+    flag = False
+    if layer==0:
+        for i in range(len(json_dict["data"])):
+            if json_dict["data"][i]["name"] != order_list[i]:
+                index = find_name(json_dict["data"], order_list[i])
+                json_dict["data"][index], json_dict["data"][i] = json_dict["data"][i], json_dict["data"][index]
+    elif layer == 1:
+        for i in json_dict["data"]:
+            if i["name"] == id:
+                for j in range(len(i["children"])):
+                    if i["children"][j]["name"] != order_list[j]:
+                        index = find_name(i["children"], order_list[j])
+                        i["children"][index], i["children"][j] = i["children"][j], i["children"][index]
+                break
+    elif layer == 2:
+        for i in json_dict["data"]:
+            for j in i["children"]:
+                if j["name"] == id:
+                    for k in range(len(j["children"])):
+                        if j ["children"][k]["name"] != order_list[k]:
+                            index = find_name(j["children"], order_list[k])
+                            j["children"][index], j["children"][k] = j["children"][k], j["children"][index]
+                    flag = True
+                if flag:
+                    break
+            if flag:
+                break
+    else:
+        raise Exception("The layer must be 1 to 3")
+
+def search_by_id(json_dict, id):
+    for i in json_dict["data"]:
+        if i["name"] == id:
+            return i
+        for j in i["children"]:
+            if j["name"] == id:
+                return j
+            for k in j["children"]:
+                if k["name"] == id:
+                    return k
+    print("warning: %s is not existed"%id)
+
+def replace_color2(json_dict, id, to_color):
+    x = search_by_id(json_dict=json_dict, id=id)
+    x["itemStyle"]["color"] = to_color
+
+def capitalize(i):
+    i["name"] = i["name"].capitalize()
+
+def traverse(json_dict, call_back = capitalize):
+    for i in json_dict["data"]:
+        call_back.__call__(i)
+        for j in i["children"]:
+            call_back.__call__(j)
+            for k in j["children"]:
+                call_back.__call__(k)

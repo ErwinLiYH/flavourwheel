@@ -3,11 +3,11 @@ from matplotlib import pyplot as plt
 from numpy.core.numeric import outer
 from . import k_cluster
 from . import filters
-import requests
-import json
+# import requests
+# import json
 import numpy as np
 import re
-import os
+# import os
 import math
 
 class GloVe_manager:
@@ -66,6 +66,7 @@ def conclude(doc_token_list):
                 count[w]+=1
             else:
                 count[w] = 1
+    print("%d words totally"% len(count))
     return count
 
 def merge_dtl(doc_token_list1, doc_token_list2):
