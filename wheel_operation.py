@@ -11,7 +11,43 @@ def search_dict_list_by_key(dict_list, key, value):
             res.append(i)
     return res
 
-def gen(classdic1, classdic2, map=None, path_name=None)->dict:
+def gen(classdic1, classdic2, map=None, path_name=None, remove_duplicate=False, num_of_words=None)->dict:
+    if remove_duplicate and map!=None and num_of_words!=None:
+        for k,v in classdic1.items():
+            remove_id = []
+            for i in range(len(v)):
+                if i not in remove_id:
+                    p = map[v[i]]
+                    for j in range(i+1, len(v)):
+                        if map[v[j]] == p:
+                            remove_id.append(j)
+            temp = [j for i,j in enumerate(v) if i not in remove_id]
+            v.clear()
+            for i in temp:
+                v.append(i)
+        for k,v in classdic2.items():
+            remove_id = []
+            for i in range(len(v)):
+                if i not in remove_id and v[i]<(num_of_words-1):
+                    p = map[v[i]]
+                    for j in range(i+1, len(v)):
+                        if map[v[j]] == p:
+                            remove_id.append(j)
+            temp = [j for i,j in enumerate(v) if i not in remove_id]
+            v.clear()
+            for i in temp:
+                v.append(i)
+        common_part = [val[0] for val in classdic1.items() if val in classdic2.items()]
+        remove_id = []
+        for i in range(len(common_part)):
+            if i not in remove_id:
+                p = map[common_part[i]]
+                for j in range(i+1, len(common_part)):
+                    if map[common_part[j]] == p:
+                        remove_id.append(common_part[j])
+        for i in remove_id:
+            classdic1.pop(i)
+            classdic2.pop(i)
     S_label_dict_list = []
     F_label_dict_list = []
     word_dict_list = []
@@ -54,7 +90,13 @@ def create_web(path_name, json_dic):
     try:
         os.makedirs(path_name)
     except:
-        pass
+        switch = input("%s existed, delete it? (yes/no): "%path_name)
+        if switch == "yes":
+            shutil.rmtree(path_name)
+            os.makedirs(path_name)
+        else:
+            print("create web failed")
+            return
     rf = resource_filename(__name__, "template")
     shutil.copy(os.path.join(rf,"echarts.js"), os.path.join(path_name, "echarts.js"))
     shutil.copy(os.path.join(rf,"test.html"), os.path.join(path_name, "test.html"))
