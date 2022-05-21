@@ -1,8 +1,7 @@
 from gensim import models as glove_model
 from matplotlib import pyplot as plt
-from numpy.core.numeric import outer
-from . import k_cluster
 from . import filters
+from tqdm import tqdm
 # import requests
 # import json
 import numpy as np
@@ -10,21 +9,36 @@ import re
 # import os
 import math
 
-class GloVe_manager:
-    def __init__(self, path):
+class mixed_model:
+    def __init__(self, path, model_dim = 300):
         print("loading model please wait, it maight take few minutes.....")
-        self.model = glove_model.KeyedVectors.load_word2vec_format(path, binary=False, no_header=True)
+        self.GloVe_model = glove_model.KeyedVectors.load_word2vec_format(path, binary=False, no_header=True)
         print("init model %s successfully"%path)
+        self.dimenssion = model_dim
+    
+    def cosine(self, x, y):
+        res = 1 - (np.dot(x,y.T)/(np.linalg.norm(x)*np.linalg.norm(y)))
+        return res
+
+    def dist(self, vect1, vect2, metric1, metric2, len_part1, weight_part1, weight_part2):
+        len_part1 = self.dimenssion
+        a = np.array(vect1[0:len_part1])
+        b = np.array(vect2[0:len_part1])
+        c = np.array(vect1[len_part1:])
+        d = np.array(vect2[len_part1:])
+        dist1 = metric1.__call__(a,b)
+        dist2 = metric2.__call__(c,d)
+        return weight_part1*dist1+weight_part2*dist2
 
 def stanza_extracter(commands, nlp, POS=["NN", "JJ"]):
     POS_dtl = {i:[] for i in POS}
-    for index, command in enumerate(commands):
+    for command in tqdm(commands):
         try:
             #print(command)
             doc = nlp(re.sub("-"," ",command.lower()))
             for i in POS:
                 POS_dtl[i].append([word.lemma for sent in doc.sentences for word in sent.words if word.xpos==i])
-            print("\rindex: %06d/%d"%(index+1,len(commands)),end="")
+            # print("\rindex: %06d/%d"%(index+1,len(commands)),end="")
         except Exception as e:
             print("")
             print(command)
@@ -93,13 +107,13 @@ def wordnet_adj2noun(doc_token_list, disable_log = False):
         doc_log_list.append(log_list)
     return doc_log_list
 
-def MCG_filter(doc_token_list, num = 10, cache_path = "./MCG", disable_log = False):
+def MCG_filter(doc_token_list, num = 5, cache_path = "./MCG", disable_log = False):
     # try:
     #     os.mkdir(cache_path)
     # except:
     #     pass
     doc_log_list = []
-    for i in range(len(doc_token_list)):
+    for i in tqdm(range(len(doc_token_list))):
         log_list = []
         doc_token_list[i] = [j for j in doc_token_list[i] if filters.MCG_boolean(j, num=num, cache_path=cache_path, log_list=log_list, disable_log=disable_log)]
         doc_log_list.append(log_list)
@@ -132,12 +146,12 @@ def __gen_concept_matrix(token_list, num, cache_path = "./MCG"):
     classes = []
     info = []
     vectors = []
-    for ind,i in enumerate(token_list):
+    for i in tqdm(token_list):
         temp_dict = filters.get_concept_prob(i, num, cache_path = cache_path)
         classes += temp_dict.keys()
         classes = list(set(classes))
         info.append(temp_dict)
-        print("\r%d/%d"%(ind+1,len(token_list)),end="")
+        # print("\r%d/%d"%(ind+1,len(token_list)),end="")
 
     remove_list = []
     for i in classes:
@@ -166,14 +180,3 @@ def to_mix_vector(token_list, num_of_concept, GloVe_vectors, cache_path = "./MCG
     vectors = np.hstack((GloVe_vectors, concept_matrix))
     print("\ngross concepts: %d"%len(c))
     return vectors
-
-def cluster(linkage, outer_distence_threshold, inner_distence_threshold):
-    if outer_distence_threshold >= inner_distence_threshold:
-        raise Exception("outer_distence_threshold must small than inner_distence_threshold")
-    root, Node_list = k_cluster.to_tree(linkage)
-    k_cluster.compress_tree(Node_list, outer_distence_threshold)
-    outer_relation = k_cluster.gen_classes(Node_list,outer_distence_threshold)
-    k_cluster.clean_tree(Node_list,outer_distence_threshold)
-    k_cluster.compress_tree(Node_list, inner_distence_threshold)
-    inner_relation = k_cluster.gen_classes(Node_list, inner_distence_threshold)  
-    return outer_relation, inner_relation
