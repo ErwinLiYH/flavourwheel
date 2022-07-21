@@ -1,8 +1,12 @@
+from termios import CINTR
 from nltk.corpus import wordnet as wn
-from . import prj_control
+from Kkit import prj_control
 import json
 import requests
 import os
+from . import conceptualize as concept
+
+requests.packages.urllib3.disable_warnings()
 
 black_list1 = ["dessert","coffee", "latte", "americano", "java", "demitasse", "cappuccino","espresso", "milk"] # coffee related words
 black_list2 = ["dinner","lunch","breakfast","water", "food", "delicacy"] # too comprehensive words
@@ -24,25 +28,66 @@ def wordnet_boolean(token, log_list=None, disable_log=False):
             log_list.append(token)
         return x
 
-def get_concept_prob(word, num, cache_path = "./MCG") -> dict:
-    cache_list = []
-    try:
-        cache_list = os.listdir(cache_path)
-    except:
-        os.mkdir(cache_path)
-    if "%s_%d"%(word,num) in cache_list:
-        res = prj_control.load_result(os.path.join(cache_path, "%s_%d"%(word,num)))
-        return res
-    else:
-        link = requests.get("https://concept.research.microsoft.com/api/Concept/ScoreByProb?instance=%s&topK=%d"%(word, num), verify=False)
-        if link.status_code == 200:
-            res = json.loads(link.text)
-            prj_control.store_result(os.path.join(cache_path,"%s_%d"%(word,num)),res)
+def get_concept_prob(word, num, cache_path = "./MCG", concept_engin = None, method = "network") -> dict:
+    if method == "network":
+        cache_list = []
+        try:
+            cache_list = os.listdir(cache_path)
+        except:
+            os.mkdir(cache_path)
+        if "%s_%d"%(word,num) in cache_list:
+            res = prj_control.load_result(os.path.join(cache_path, "%s_%d"%(word,num)))
             return res
         else:
-            raise Exception("code: %d"%link.status_code)
+            link = requests.get("https://concept.research.microsoft.com/api/Concept/ScoreByProb?instance=%s&topK=%d"%(word, num), verify=False)
+            if link.status_code == 200:
+                res = json.loads(link.text)
+                prj_control.store_result(os.path.join(cache_path,"%s_%d"%(word,num)),res)
+                return res
+            else:
+                raise Exception("code: %d"%link.status_code)
+    if method == "local":
+        res = {}
+        concept_list = concept_engin.conceptualize(word, score_method="likelihood")[:num]
+        total = 0
+        for i in concept_list:
+            total+=i[1]
+        for i in concept_list:
+            res[i[0]] = i[1]/total
+        return res
 
-def MCG_boolean(token, num, cache_path = "./MCG", log_list=None, disable_log=False):
+
+def __check(token, A_list):
+    x = [i.split(" ") for i in A_list]
+    y = []
+    for i in x:
+        y.append(i[-1])
+    if token in y:
+        return True
+    else:
+        return False
+
+def MCG_boolean(token, num, max_deepth=3, cache_path="./MCG", concept_engin = None, method = "network", log_list=None, disable_log=False):
+    tokens = [token]
+    for i in range(max_deepth):
+        temp_tokens=[]
+        for j in tokens:
+            try:
+                prob_dic = get_concept_prob(j, num, cache_path, concept_engin = concept_engin, method = method)
+            except:
+                print(j)
+                exit(0)
+            if len(prob_dic)!=0:
+                keys_list = list(prob_dic.keys())
+                if True in [__check(i, keys_list) for i in ["plant", "food", "crop", "oil"]]:
+                    return True
+                temp_tokens+=list(keys_list)
+        tokens = temp_tokens
+    if disable_log==False:
+        log_list.append(token)
+    return False
+
+def MCG_boolean_old(token, num, cache_path = "./MCG", log_list=None, disable_log=False):
     prob_dic = get_concept_prob(token, num, cache_path)
     boolean_list = []
     for k,v in prob_dic.items():
@@ -55,11 +100,11 @@ def MCG_boolean(token, num, cache_path = "./MCG", log_list=None, disable_log=Fal
             log_list.append(token)
         return x
 
-def manual_filter(token, black_list):
-    if token in black_list:
-        return True
-    else:
-        return False
+# def manual_filter(token, black_list):
+#     if token in black_list:
+#         return True
+#     else:
+#         return False
 
 def adj2noun(adj_lemma_list, log_list=None, disable_log=False):
     noun_list = [] # [[], [], []]
