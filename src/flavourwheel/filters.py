@@ -1,4 +1,3 @@
-from termios import CINTR
 from nltk.corpus import wordnet as wn
 from Kkit import prj_control
 import json
