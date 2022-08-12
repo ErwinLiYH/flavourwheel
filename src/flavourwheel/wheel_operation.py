@@ -113,7 +113,7 @@ def create_web(path_name, json_dic):
         js.write("var text='%s'\n\n%s"%(json_string, tem_string))
 
 def one_step_dtermine_distance(vecs, linkage_metric="cosine", linkage_method="average", start=0, end=1, step=0.001, figsize=(10,16), img_path=None, dpi=600):
-    twoL.one_step_determine_distance(vecs, linkage_metric, linkage_method, start, end, step, figsize, img_path, dpi)
+    return twoL.one_step_determine_distance(vecs, linkage_metric, linkage_method, start, end, step, figsize, img_path, dpi)
 
 def one_step_flavourwheel(vecs, FD_map, outer_distance, inner_distance, web_path, remove_duplicate=False, group_num=10, json_path=None):
     linkage_matrix = sch.linkage(vecs, method="average", metric="cosine")
