@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="flavourwheel",
-    version="2.1.4",
+    version="2.1.5",
     author="ErwinLi",
     author_email="1779599839@qq.com",
     description="Automatical flavour wheel generation with NLP tech",
@@ -22,6 +22,6 @@ setuptools.setup(
     ],
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
-    include_package_data=True,
+    package_data={"flavourwheel.template":["template.js", "echarts.js", "index.html"]},
     python_requires=">=3.6",
 )

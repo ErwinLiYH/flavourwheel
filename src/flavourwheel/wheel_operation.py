@@ -100,16 +100,16 @@ def create_web(path_name, json_dic):
         else:
             print("create web failed")
             return
-    rf = resource_filename(__name__, "data")
+    rf = resource_filename(__name__, "template")
     shutil.copy(os.path.join(rf,"echarts.js"), os.path.join(path_name, "echarts.js"))
-    shutil.copy(os.path.join(rf,"test.html"), os.path.join(path_name, "test.html"))
+    shutil.copy(os.path.join(rf,"index.html"), os.path.join(path_name, "index.html"))
     
     json_string = json.dumps(json_dic, indent=4, sort_keys=True).replace("\n","\\\n")
 
     with open(os.path.join(rf,"template.js"), "r") as tem:
         tem_string = tem.read()
 
-    with open(os.path.join(path_name, "test.js"), "w") as js:
+    with open(os.path.join(path_name, "template.js"), "w") as js:
         js.write("var text='%s'\n\n%s"%(json_string, tem_string))
 
 def one_step_dtermine_distance(vecs, linkage_metric="cosine", linkage_method="average", start=0, end=1, step=0.001, figsize=(10,16), img_path=None, dpi=600):
