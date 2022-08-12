@@ -112,16 +112,17 @@ def create_web(path_name, json_dic):
     with open(os.path.join(path_name, "template.js"), "w") as js:
         js.write("var text='%s'\n\n%s"%(json_string, tem_string))
 
-def one_step_dtermine_distance(vecs, linkage_metric="cosine", linkage_method="average", start=0, end=1, step=0.001, figsize=(10,16), img_path=None, dpi=600):
+def one_step_dtermine_distance(vecs, linkage_metric="cosine", linkage_method="average", start=0, end=2, step=0.001, figsize=(10,16), img_path=None, dpi=600):
     return twoL.one_step_determine_distance(vecs, linkage_metric, linkage_method, start, end, step, figsize, img_path, dpi)
 
-def one_step_flavourwheel(vecs, FD_map, outer_distance, inner_distance, web_path, remove_duplicate=False, group_num=10, json_path=None):
-    linkage_matrix = sch.linkage(vecs, method="average", metric="cosine")
+def one_step_flavourwheel(vecs, FD_map, outer_distance, inner_distance, web_path, linkage_metric="cosine", linkage_mathod="average", remove_duplicate=False, group_num=10, json_path=None):
+    linkage_matrix = sch.linkage(vecs, method=linkage_mathod, metric=linkage_metric)
     outer_relation,inner_relation = twoL.cluster(linkage=linkage_matrix, outer_distance_threshold=outer_distance, inner_distance_threshold=inner_distance)
     if remove_duplicate:
         twoL.remove_duplicate(outer_relation, inner_relation, vecs.shape[0], group_num)
     json_dict = gen(outer_relation, inner_relation, FD_map=FD_map, path_name=json_path)
     create_web(web_path, json_dict)
+    return json_dict
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
