@@ -117,7 +117,7 @@ def one_step_dtermine_distance(vecs, linkage_metric="cosine", linkage_method="av
 
 def one_step_flavourwheel(vecs, FD_map, outer_distance, inner_distance, web_path, remove_duplicate=False, group_num=10, json_path=None):
     linkage_matrix = sch.linkage(vecs, method="average", metric="cosine")
-    outer_relation,inner_relation = twoL.cluster(linkage=linkage_matrix, outer_distence_threshold=outer_distance, inner_distence_threshold=inner_distance)
+    outer_relation,inner_relation = twoL.cluster(linkage=linkage_matrix, outer_distance_threshold=outer_distance, inner_distance_threshold=inner_distance)
     if remove_duplicate:
         twoL.remove_duplicate(outer_relation, inner_relation, vecs.shape[0], group_num)
     json_dict = gen(outer_relation, inner_relation, FD_map=FD_map, path_name=json_path)
