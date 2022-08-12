@@ -21,7 +21,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     package_dir={"": "src"},
-    packages=setuptools.find_packages(where="src"),
+    packages=setuptools.find_packages(where="src")+["flavourwheel.template"],
     package_data={"flavourwheel.template":["template.js", "echarts.js", "index.html"]},
     python_requires=">=3.6",
 )
