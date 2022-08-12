@@ -100,7 +100,7 @@ def create_web(path_name, json_dic):
         else:
             print("create web failed")
             return
-    rf = resource_filename(__name__, "template")
+    rf = resource_filename(__name__, "data")
     shutil.copy(os.path.join(rf,"echarts.js"), os.path.join(path_name, "echarts.js"))
     shutil.copy(os.path.join(rf,"test.html"), os.path.join(path_name, "test.html"))
     
