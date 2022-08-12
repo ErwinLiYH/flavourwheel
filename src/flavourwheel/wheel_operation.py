@@ -2,6 +2,8 @@ import json
 import os
 import shutil
 from pkg_resources import resource_filename
+import scipy.cluster.hierarchy as sch
+from mlhCluster import twoL
 
 def search_dict_list_by_key(dict_list, key, value):
     inx = 0
@@ -11,43 +13,44 @@ def search_dict_list_by_key(dict_list, key, value):
             res.append(i)
     return res
 
-def gen(classdic1, classdic2, map=None, path_name=None, remove_duplicate=False, num_of_words=None)->dict:
-    if remove_duplicate and map!=None and num_of_words!=None:
-        for k,v in classdic1.items():
-            remove_id = []
-            for i in range(len(v)):
-                if i not in remove_id:
-                    p = map[v[i]]
-                    for j in range(i+1, len(v)):
-                        if map[v[j]] == p:
-                            remove_id.append(j)
-            temp = [j for i,j in enumerate(v) if i not in remove_id]
-            v.clear()
-            for i in temp:
-                v.append(i)
-        for k,v in classdic2.items():
-            remove_id = []
-            for i in range(len(v)):
-                if i not in remove_id and v[i]<(num_of_words-1):
-                    p = map[v[i]]
-                    for j in range(i+1, len(v)):
-                        if map[v[j]] == p:
-                            remove_id.append(j)
-            temp = [j for i,j in enumerate(v) if i not in remove_id]
-            v.clear()
-            for i in temp:
-                v.append(i)
-        common_part = [val[0] for val in classdic1.items() if val in classdic2.items()]
-        remove_id = []
-        for i in range(len(common_part)):
-            if i not in remove_id:
-                p = map[common_part[i]]
-                for j in range(i+1, len(common_part)):
-                    if map[common_part[j]] == p:
-                        remove_id.append(common_part[j])
-        for i in remove_id:
-            classdic1.pop(i)
-            classdic2.pop(i)
+# def gen(classdic1, classdic2, map=None, path_name=None, remove_duplicate=False, num_of_words=None)->dict:
+def gen(classdic1, classdic2, FD_map=None, path_name=None)->dict:
+    # if remove_duplicate and map!=None and num_of_words!=None:
+    #     for k,v in classdic1.items():
+    #         remove_id = []
+    #         for i in range(len(v)):
+    #             if i not in remove_id:
+    #                 p = map[v[i]]
+    #                 for j in range(i+1, len(v)):
+    #                     if map[v[j]] == p:
+    #                         remove_id.append(j)
+    #         temp = [j for i,j in enumerate(v) if i not in remove_id]
+    #         v.clear()
+    #         for i in temp:
+    #             v.append(i)
+    #     for k,v in classdic2.items():
+    #         remove_id = []
+    #         for i in range(len(v)):
+    #             if i not in remove_id and v[i]<(num_of_words-1):
+    #                 p = map[v[i]]
+    #                 for j in range(i+1, len(v)):
+    #                     if map[v[j]] == p:
+    #                         remove_id.append(j)
+    #         temp = [j for i,j in enumerate(v) if i not in remove_id]
+    #         v.clear()
+    #         for i in temp:
+    #             v.append(i)
+    #     common_part = [val[0] for val in classdic1.items() if val in classdic2.items()]
+    #     remove_id = []
+    #     for i in range(len(common_part)):
+    #         if i not in remove_id:
+    #             p = map[common_part[i]]
+    #             for j in range(i+1, len(common_part)):
+    #                 if map[common_part[j]] == p:
+    #                     remove_id.append(common_part[j])
+    #     for i in remove_id:
+    #         classdic1.pop(i)
+    #         classdic2.pop(i)
     S_label_dict_list = []
     F_label_dict_list = []
     word_dict_list = []
@@ -76,9 +79,9 @@ def gen(classdic1, classdic2, map=None, path_name=None, remove_duplicate=False, 
             for i in inx2:
                 dic["children"].append(F_label_dict_list[i])
         S_label_dict_list.append(dic)
-    if map!=None:
+    if FD_map!=None:
         for i in word_dict_list:
-            i["name"] = map[i["name"]]
+            i["name"] = FD_map[i["name"]]
     result = {"data": S_label_dict_list}
     if path_name:
         with open(path_name, "w") as jsonf:
@@ -108,6 +111,14 @@ def create_web(path_name, json_dic):
 
     with open(os.path.join(path_name, "test.js"), "w") as js:
         js.write("var text='%s'\n\n%s"%(json_string, tem_string))
+
+def one_step_flavourwheel(vecs, FD_map, outer_distance, inner_distance, web_path, remove_duplicate=False, group_num=10, json_path=None):
+    linkage_matrix = sch.linkage(vecs, method="average", metric="cosine")
+    outer_relation,inner_relation = twoL.cluster(linkage=linkage_matrix, outer_distence_threshold=outer_distance, inner_distence_threshold=inner_distance)
+    if remove_duplicate:
+        twoL.remove_duplicate(outer_relation, inner_relation, vecs.shape[0], group_num)
+    json_dict = gen(outer_relation, inner_relation, FD_map=FD_map, path_name=json_path)
+    create_web(web_path, json_dict)
 
 def hex_to_rgb(value):
     value = value.lstrip('#')

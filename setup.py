@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="flavourwheel",
-    version="2.0.0",
+    version="2.1.0",
     author="ErwinLi",
     author_email="1779599839@qq.com",
     description="Automatical flavour wheel generation with NLP tech",
