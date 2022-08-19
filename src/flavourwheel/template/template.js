@@ -14,7 +14,7 @@ option = {
             type: 'png',
             backgroundColor:'#ffffff',
             name:'result',
-            pixelRatio:4
+            pixelRatio:1
             }
         }
    },
@@ -37,7 +37,7 @@ option = {
         label: {
           rotate: 'radial',
           align: 'right',
-          fontSize: 10
+          fontSize: 40
         }
       },
       {
@@ -45,7 +45,7 @@ option = {
         r: '70%',
         label: {
           align: 'right',
-          fontSize: 12
+          fontSize: 48
         }
       },
       {
@@ -55,7 +55,7 @@ option = {
           position: 'outside',
           padding: 3,
           silent: false,
-          fontSize: 12
+          fontSize: 56
         },
         itemStyle: {
           borderWidth: 3
