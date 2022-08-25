@@ -6,7 +6,10 @@ var js_data = JSON.parse(text);
 var data = js_data.data
 
 option = {
-   toolbox: {
+    textStyle: {
+      fontFamily: "Times New Roman"
+    },
+    toolbox: {
         show: true,
         feature: {
             saveAsImage: {
@@ -16,8 +19,9 @@ option = {
             name:'result',
             pixelRatio:1
             }
-        }
-   },
+        },
+        itemSize:200
+    },
   series: {
     type: 'sunburst',
     data: data,

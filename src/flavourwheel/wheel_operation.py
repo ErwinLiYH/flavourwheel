@@ -89,7 +89,7 @@ def gen(classdic1, classdic2, FD_map=None, path_name=None)->dict:
             jsonf.write(json_string)
     return result
 
-def create_web(path_name, json_dic):
+def create_web(path_name, json_dic, mod="wheel"):
     try:
         os.makedirs(path_name)
     except:
@@ -106,8 +106,14 @@ def create_web(path_name, json_dic):
     
     json_string = json.dumps(json_dic, indent=4, sort_keys=True).replace("\n","\\\n")
 
-    with open(os.path.join(rf,"template.js"), "r") as tem:
-        tem_string = tem.read()
+    if mod=="wheel":
+        with open(os.path.join(rf,"template_wheel.js"), "r") as tem:
+            tem_string = tem.read()
+    elif mod=="tree":
+        with open(os.path.join(rf,"template_tree.js"), "r") as tem:
+            tem_string = tem.read()
+    else:
+        raise Exception("mode error!!!!")
 
     with open(os.path.join(path_name, "template.js"), "w") as js:
         js.write("var text='%s'\n\n%s"%(json_string, tem_string))
@@ -115,13 +121,13 @@ def create_web(path_name, json_dic):
 def one_step_dtermine_distance(vecs, linkage_metric="cosine", linkage_method="average", start=0, end=2, step=0.001, figsize=(10,16), img_path=None, dpi=600, online=[False, False]):
     return twoL.one_step_determine_distance(vecs, linkage_metric, linkage_method, start, end, step, figsize, img_path, dpi, online=online)
 
-def one_step_flavourwheel(vecs, FD_map, outer_distance, inner_distance, web_path, linkage_metric="cosine", linkage_mathod="average", remove_duplicate=False, group_num=10, json_path=None):
+def one_step_flavourwheel(vecs, FD_map, outer_distance, inner_distance, web_path, linkage_metric="cosine", linkage_mathod="average", remove_duplicate=False, group_num=10, json_path=None, mod="wheel"):
     linkage_matrix = sch.linkage(vecs, method=linkage_mathod, metric=linkage_metric)
     outer_relation,inner_relation = twoL.cluster(linkage=linkage_matrix, outer_distance_threshold=outer_distance, inner_distance_threshold=inner_distance)
     if remove_duplicate:
         twoL.remove_duplicate(outer_relation, inner_relation, vecs.shape[0], group_num)
     json_dict = gen(outer_relation, inner_relation, FD_map=FD_map, path_name=json_path)
-    create_web(web_path, json_dict)
+    create_web(web_path, json_dict, mod=mod)
     return json_dict
 
 def hex_to_rgb(value):

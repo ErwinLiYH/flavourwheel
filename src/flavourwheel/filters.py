@@ -1,5 +1,5 @@
 from nltk.corpus import wordnet as wn
-from Kkit import prj_control
+import Kkit
 import json
 import requests
 import os
@@ -35,13 +35,13 @@ def get_concept_prob(word, num, cache_path = "./MCG", concept_engin = None, meth
         except:
             os.mkdir(cache_path)
         if "%s_%d"%(word,num) in cache_list:
-            res = prj_control.load_result(os.path.join(cache_path, "%s_%d"%(word,num)))
+            res = Kkit.load_result(os.path.join(cache_path, "%s_%d"%(word,num)))
             return res
         else:
             link = requests.get("https://concept.research.microsoft.com/api/Concept/ScoreByProb?instance=%s&topK=%d"%(word, num), verify=False)
             if link.status_code == 200:
                 res = json.loads(link.text)
-                prj_control.store_result(os.path.join(cache_path,"%s_%d"%(word,num)),res)
+                Kkit.store_result(os.path.join(cache_path,"%s_%d"%(word,num)),res)
                 return res
             else:
                 raise Exception("code: %d"%link.status_code)
